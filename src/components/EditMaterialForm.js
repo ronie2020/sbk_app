@@ -4,11 +4,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
 import { createClient } from '@/utils/supabase/client';
 
 export default function EditMaterialForm({ initialData }) {
   const router = useRouter();
+  const supabase = createClient();
   
   // Isi state dengan data awal yang diterima dari halaman server
   const [title, setTitle] = useState(initialData.title);
@@ -17,7 +17,7 @@ export default function EditMaterialForm({ initialData }) {
   const [youtubeUrl, setYoutubeUrl] = useState(initialData.youtube_url || '');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const supabase = createClient();
+  
 
   const handleUpdate = async (e) => {
     e.preventDefault();
