@@ -1,10 +1,13 @@
-// File: src/components/TugasList.js
+// File: src/components/TugasList.js (Dengan Perbaikan Refresh)
 'use client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation'; // <-- Gunakan useRouter
 import { supabase } from '@/lib/supabaseClient';
 
-export default function TugasList({ assignments, user, fetchAssignments }) {
+// Ganti nama prop menjadi initialAssignments
+export default function TugasList({ initialAssignments, user }) {
+  const router = useRouter(); // <-- Panggil useRouter
+
   const handleDelete = async (assignmentId) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus tugas ini?')) {
       const { error } = await supabase.from('assignments').delete().eq('id', assignmentId);
@@ -12,15 +15,16 @@ export default function TugasList({ assignments, user, fetchAssignments }) {
         alert('Gagal menghapus tugas: ' + error.message);
       } else {
         alert('Tugas berhasil dihapus.');
-        fetchAssignments();
+        router.refresh(); // <-- Refresh halaman untuk memuat ulang data dari server
       }
     }
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {assignments?.length > 0 ? (
-        assignments.map((tugas) => (
+      {/* Gunakan initialAssignments */}
+      {initialAssignments?.length > 0 ? (
+        initialAssignments.map((tugas) => (
           <div key={tugas.id} className="h-full flex flex-col p-6 bg-white border rounded-lg shadow hover:shadow-xl">
             <Link href={`/tugas/${tugas.id}`}>
               <h2 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 hover:text-blue-700">{tugas.title}</h2>
