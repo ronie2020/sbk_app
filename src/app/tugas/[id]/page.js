@@ -59,6 +59,19 @@ export default async function AssignmentDetailPage({ params }) {
             <h1 className="text-4xl font-bold mb-2">{assignment.title}</h1>
             <p className="text-lg text-red-600 mb-6">Tenggat: {assignment.due_date}</p>
             <div className="prose max-w-none"><p>{assignment.description}</p></div>
+            {/* vvv TAMBAHKAN BLOK INI vvv */}
+            {assignment.external_link && (
+                <div className="mt-6">
+                    <a 
+                        href={assignment.external_link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-block px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors"
+                    >
+                        Buka Tautan Tugas
+                    </a>
+                </div>
+            )}
             <hr className="my-8" />
             <h2 className="text-2xl font-semibold mb-4">Pengumpulan Tugas</h2>
 

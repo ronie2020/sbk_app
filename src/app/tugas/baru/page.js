@@ -1,4 +1,4 @@
-// File: src/app/tugas/baru/page.js
+// File: src/app/tugas/baru/page.js (Dengan Perbaikan)
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,7 +13,9 @@ export default function CreateAssignmentPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [externalLink, setExternalLink] = useState(''); // <-- PERBAIKAN DI SINI
   const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || user.profile.role !== 'guru')) {
@@ -23,6 +25,7 @@ export default function CreateAssignmentPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     setMessage('Menyimpan tugas...');
 
     const { error } = await supabase.from('assignments').insert([
@@ -30,6 +33,7 @@ export default function CreateAssignmentPage() {
         title,
         description,
         due_date: dueDate,
+        external_link: externalLink, // <-- Pastikan ini ada
         author_id: user.id,
       },
     ]);
@@ -39,7 +43,9 @@ export default function CreateAssignmentPage() {
     } else {
       setMessage('Tugas berhasil dibuat!');
       router.push('/tugas');
+      router.refresh();
     }
+    setIsSubmitting(false);
   };
   
   if (loading || !user || user.profile.role !== 'guru') {
@@ -62,21 +68,17 @@ export default function CreateAssignmentPage() {
           <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">Tenggat Waktu</label>
           <input id="dueDate" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} required className="w-full px-3 py-2 mt-1 border rounded-md" />
         </div>
-
-        {/* --- Tombol diubah di sini --- */}
+        {/* Input untuk link eksternal */}
+        <div>
+            <label htmlFor="externalLink" className="block text-sm font-medium text-gray-700">Link Eksternal (Quizizz, Canva, dll.)</label>
+            <input id="externalLink" type="url" value={externalLink} onChange={(e) => setExternalLink(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 mt-1 border rounded-md" />
+        </div>
         <div className="flex items-center gap-4 pt-4 border-t">
-            <button 
-                type="button"
-                onClick={() => router.back()}
-                className="w-full px-4 py-2 font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-            >
+            <button type="button" onClick={() => router.back()} className="w-full px-4 py-2 font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">
                 Batal
             </button>
-            <button 
-                type="submit" 
-                className="w-full px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-            >
-                Simpan Tugas
+            <button type="submit" disabled={isSubmitting} className="w-full px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400">
+                {isSubmitting ? 'Menyimpan...' : 'Simpan Tugas'}
             </button>
         </div>
 
