@@ -1,3 +1,5 @@
+// File: src/context/AuthContext.js (Versi Lebih Tahan Banting)
+
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
@@ -11,25 +13,39 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (session) {
-        // Jika ada sesi, ambil juga data profilnya
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        // Gabungkan data auth dan data profil
-        setUser({ ...session.user, profile });
+      try {
+        console.log("Mencoba mengambil sesi awal...");
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          console.log("Sesi ditemukan, mengambil profil...");
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          setUser({ ...session.user, profile });
+          console.log("Profil ditemukan, user di-set:", { ...session.user, profile });
+        } else {
+          setUser(null);
+          console.log("Tidak ada sesi, user di-set ke null.");
+        }
+      } catch (error) {
+        console.error("Error saat mengambil sesi awal:", error);
+        setUser(null);
+      } finally {
+        // 'finally' akan selalu dijalankan, baik ada error maupun tidak.
+        // Ini memastikan loading selalu berhenti.
+        setLoading(false);
+        console.log("Proses loading awal selesai.");
       }
-      setLoading(false);
     };
 
     getInitialSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Event auth terdeteksi:", event);
         if (session) {
           const { data: profile } = await supabase
             .from('profiles')
@@ -48,7 +64,7 @@ export function AuthProvider({ children }) {
       authListener.subscription.unsubscribe();
     };
   }, []);
-
+  
   const value = { user, loading };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
