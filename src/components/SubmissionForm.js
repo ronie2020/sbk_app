@@ -1,14 +1,15 @@
-// File: src/components/SubmissionForm.js
+// File: src/components/SubmissionForm.js (INI KODE YANG BENAR)
 'use client';
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
 export default function SubmissionForm({ assignmentId }) {
   const { user } = useAuth();
   const router = useRouter();
+  const supabase = createClient();
   const [file, setFile] = useState(null);
   const [notes, setNotes] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -34,10 +35,8 @@ export default function SubmissionForm({ assignmentId }) {
     setUploading(true);
     setMessage('Mengunggah file...');
 
-    // INI BARIS YANG KITA UBAH CARA PENULISANNYA
     const filePath = user.id + '/' + assignmentId + '-' + file.name;
 
-    // 1. Upload file ke Storage
     const { error: uploadError } = await supabase.storage
       .from('file-submissions')
       .upload(filePath, file);
@@ -48,7 +47,6 @@ export default function SubmissionForm({ assignmentId }) {
       return;
     }
     
-    // 2. Jika upload berhasil, catat di tabel 'submissions'
     const { error: insertError } = await supabase
       .from('submissions')
       .insert({
@@ -62,7 +60,7 @@ export default function SubmissionForm({ assignmentId }) {
       setMessage('Gagal mencatat pengumpulan: ' + insertError.message);
     } else {
       setMessage('Tugas berhasil dikumpulkan!');
-      router.refresh(); 
+      router.refresh();
     }
     
     setUploading(false);

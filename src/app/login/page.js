@@ -1,62 +1,38 @@
-// File: src/app/login/page.js (Dengan Isian Kelas)
 'use client';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client'; // <-- Ganti import
 
 export default function LoginPage() {
   const router = useRouter();
+  const supabase = createClient(); // <-- Buat client di sini
+  // ... sisa state Anda (email, password, dll) tetap sama ...
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState('siswa');
-  const [kelas, setKelas] = useState(''); // <-- State baru untuk kelas
+  const [kelas, setKelas] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleRegister = async () => {
+  const handleLogin = async () => {
+    // ... (Fungsi ini tidak berubah) ...
     setIsSubmitting(true);
-    setMessage('');
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          role: role,
-          kelas: role === 'siswa' ? kelas : null, // <-- Kirim data kelas jika peran siswa
-        },
-      },
-    });
-
-    if (authError) {
-      setMessage('Error: ' + authError.message);
-    } else if (authData.user) {
-        // Trigger akan otomatis membuat profil. Kita hanya perlu memberi pesan.
-        setMessage('Pendaftaran berhasil! Silakan cek email Anda untuk konfirmasi.');
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { setMessage('Error: ' + error.message); } else { router.push('/'); router.refresh(); }
     setIsSubmitting(false);
   };
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
+    // ... (Fungsi ini tidak berubah) ...
     setIsSubmitting(true);
-    setMessage('');
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setMessage('Error: ' + error.message);
-    } else {
-      router.push('/');
-      router.refresh();
-    }
+    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, role: role, kelas: role === 'siswa' ? kelas : null } } });
+    if (error) { setMessage('Error: ' + error.message); } else { setMessage('Pendaftaran berhasil! Cek email untuk konfirmasi.'); }
     setIsSubmitting(false);
   };
 
   return (
+    // ... Seluruh JSX Anda tetap sama ...
     <main className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="p-8 bg-white rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold text-center mb-6">Login / Register</h1>
@@ -66,12 +42,7 @@ export default function LoginPage() {
             <option value="siswa">Saya adalah seorang Siswa</option>
             <option value="guru">Saya adalah seorang Guru</option>
           </select>
-
-          {/* Form Kelas hanya muncul jika peran adalah siswa */}
-          {role === 'siswa' && (
-            <input type="text" placeholder="Kelas (Contoh: 7A, 8B)" value={kelas} onChange={e => setKelas(e.target.value)} className="w-full px-3 py-2 border rounded-md" />
-          )}
-
+          {role === 'siswa' && (<input type="text" placeholder="Kelas (Contoh: 7A, 8B)" value={kelas} onChange={e => setKelas(e.target.value)} className="w-full px-3 py-2 border rounded-md" />)}
           <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full px-3 py-2 border rounded-md" />
           <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full px-3 py-2 border rounded-md" />
           <div className="flex gap-4">

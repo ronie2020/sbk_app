@@ -1,22 +1,33 @@
-// File: src/components/MenuUtama.js (atau Navbar.js) - Versi Anti-Hydration Error
-
+// File: src/components/MenuUtama.js (Versi Mandiri)
 'use client';
-import { useState, useEffect } from 'react'; // <-- Tambahkan useEffect
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
 export default function MenuUtama() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false); // <-- State baru untuk menandai sudah di-mount
+  // Ambil sesi dari context
+  const { session, loading } = useAuth();
+  const user = session?.user;
 
-  // useEffect ini akan berjalan HANYA setelah komponen berhasil dimuat di client
+  const router = useRouter();
+  const supabase = createClient();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [profile, setProfile] = useState(null); // State lokal untuk profil
+
+  // useEffect untuk mengambil profil HANYA JIKA ada user
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    if (user) {
+      const fetchProfile = async () => {
+        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        setProfile(data);
+      };
+      fetchProfile();
+    } else {
+      setProfile(null); // Kosongkan profil jika logout
+    }
+  }, [user, supabase]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -29,7 +40,8 @@ export default function MenuUtama() {
       <Link href="/" className="block md:inline-block py-2 px-4 hover:text-gray-300">Beranda</Link>
       <Link href="/materi" className="block md:inline-block py-2 px-4 hover:text-gray-300">Materi</Link>
       <Link href="/tugas" className="block md:inline-block py-2 px-4 hover:text-gray-300">Tugas</Link>
-      {user?.profile?.role === 'guru' && (
+      {/* Sekarang kita cek dari state lokal 'profile' */}
+      {profile?.role === 'guru' && (
         <Link href="/rekap-nilai" className="block md:inline-block py-2 px-4 hover:text-gray-300">Rekap Nilai</Link>
       )}
     </>
@@ -44,18 +56,12 @@ export default function MenuUtama() {
         <div className="hidden md:flex items-center space-x-4">
           {navLinks}
           
-          {/* Tampilkan bagian login/logout HANYA jika sudah di-mount */}
-          {isMounted && (
+          {loading ? <p>...</p> : user ? (
             <>
-              {loading ? <p>...</p> : user ? (
-                <>
-                  <span className="text-sm bg-gray-700 px-2 py-1 rounded">{user.email}</span>
-                  <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Logout</button>
-                </>
-              ) : <Link href="/login" className="bg-indigo-600 px-3 py-1 rounded">Login</Link>}
+              <span className="text-sm bg-gray-700 px-2 py-1 rounded">{user.email}</span>
+              <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Logout</button>
             </>
-          )}
-
+          ) : <Link href="/login" className="bg-indigo-600 px-3 py-1 rounded">Login</Link>}
         </div>
 
         {/* Tombol Hamburger untuk Mobile */}
@@ -66,21 +72,17 @@ export default function MenuUtama() {
         </div>
       </div>
 
-      {/* Menu Mobile yang bisa expand/collapse */}
+      {/* Menu Mobile */}
       {isMenuOpen && (
         <div className="md:hidden mt-4">
           {navLinks}
           <div className="mt-4 pt-4 border-t border-gray-700">
-          {isMounted && (
-            <>
-              {loading ? <p>...</p> : user ? (
-                <div className="flex flex-col items-start space-y-3">
-                  <span className="text-sm px-4">{user.email}</span>
-                  <button onClick={handleLogout} className="bg-red-600 px-4 py-2 rounded w-full text-left">Logout</button>
-                </div>
-              ) : <Link href="/login" className="bg-indigo-600 block text-center py-2 px-4 rounded">Login</Link>}
-            </>
-          )}
+            {loading ? <p>...</p> : user ? (
+              <div className="flex flex-col items-start space-y-3">
+                <span className="text-sm px-4">{user.email}</span>
+                <button onClick={handleLogout} className="bg-red-600 px-4 py-2 rounded w-full text-left">Logout</button>
+              </div>
+            ) : <Link href="/login" className="bg-indigo-600 block text-center py-2 px-4 rounded">Login</Link>}
           </div>
         </div>
       )}

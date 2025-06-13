@@ -2,12 +2,13 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
 export default function GradingForm({ submission }) {
   const router = useRouter();
-  // Isi form dengan nilai yang sudah ada, atau string kosong jika belum ada
+  const supabase = createClient();
+  
   const [grade, setGrade] = useState(submission.grade || '');
   const [feedback, setFeedback] = useState(submission.teacher_feedback || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,7 +31,7 @@ export default function GradingForm({ submission }) {
       setMessage('Gagal menyimpan nilai: ' + error.message);
     } else {
       setMessage('Nilai berhasil disimpan!');
-      router.refresh(); // Refresh halaman untuk menampilkan data terbaru
+      router.refresh();
     }
     setIsSubmitting(false);
   };

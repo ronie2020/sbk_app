@@ -1,13 +1,14 @@
-// File: src/components/MaterialList.js
+// File: src/components/MaterialList.js (Versi Final dengan Client Baru)
 'use client';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client'; // <-- 1. Ganti import
 
 // Menerima 'materials' dan 'user' sebagai props
 export default function MaterialList({ materials, user }) {
   const router = useRouter();
+  const supabase = createClient(); // <-- 2. Buat client di sini
 
   const handleMaterialDelete = async (materialId) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus materi ini?')) {

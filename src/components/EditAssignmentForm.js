@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client';
+
 
 export default function EditMaterialForm({ initialData }) {
   const router = useRouter();
@@ -13,6 +15,9 @@ export default function EditMaterialForm({ initialData }) {
   const [externalLink, setExternalLink] = useState(initialData.external_link || ''); // <-- State baru
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const supabase = createClient();
+
+
 
   const handleUpdate = async (e) => {
     e.preventDefault();

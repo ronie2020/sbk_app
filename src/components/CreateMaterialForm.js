@@ -5,11 +5,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client';
 
 export default function CreateMaterialForm() {
   const { user } = useAuth();
   const router = useRouter();
-  
+  const supabase = createClient();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [content, setContent] = useState('');
